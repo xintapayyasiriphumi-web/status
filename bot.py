@@ -17,21 +17,21 @@ STATUS_CONFIG = {
         "emoji": "🟢",
         "title": "ว่าง — รับงานได้",
         "desc": "ขณะนี้ admin ว่างและพร้อม setup ให้ลูกค้าได้ทันที\nติดต่อผ่าน Ticket ได้เลยครับ",
-        "footer": "INSIDEX • Premium Hands-on Setup Service",
+        "footer": "INSIDEX • STATUS",
     },
     "ยุ่ง": {
         "color": 0xEF9F27,
         "emoji": "🟡",
         "title": "ยุ่ง — กำลัง setup ให้ลูกค้าอยู่",
         "desc": "ขณะนี้ admin กำลัง setup ให้ลูกค้าอยู่\nอาจตอบช้าหน่อย แต่รับคิวได้ครับ",
-        "footer": "INSIDEX • Premium Hands-on Setup Service",
+        "footer": "INSIDEX • STATUS",
     },
     "เต็ม": {
         "color": 0xE24B4A,
         "emoji": "🔴",
         "title": "เต็ม — ไม่รับงานชั่วคราว",
         "desc": "ขณะนี้คิวเต็มแล้ว ยังไม่รับงานเพิ่ม\nกรุณารอและติดตามสถานะอีกครั้งในภายหลังครับ",
-        "footer": "INSIDEX • Premium Hands-on Setup Service",
+        "footer": "INSIDEX • STATUS",
     },
 }
 
