@@ -17,7 +17,7 @@ STATUS_CONFIG = {
         "color": 0x39FF14,
         "emoji": "🟢",
         "title": "ว่าง — รับงานได้",
-        "desc": "ขณะนี้ admin ว่างและพร้อม setup ให้ลูกค้าได้ทันที\nติดต่อผ่าน Ticket ได้เลยครับ\n**ซื้อ Setting** https://discord.com/channels/1400021255528382526/1432715699138072699\nลง Windows https://discord.com/channels/1400021255528382526/1485640881653420062",
+        "desc": "ขณะนี้ admin ว่างและพร้อม setup ให้ลูกค้าได้ทันที\nติดต่อผ่าน Ticket ได้เลยครับ\n**ซื้อ Setting** https://discord.com/channels/1400021255528382526/1432715699138072699\n**ลง Windows** https://discord.com/channels/1400021255528382526/1485640881653420062",
         "footer": "INSIDEX • STATUS",
     },
     "ยุ่ง": {
