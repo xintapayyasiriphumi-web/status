@@ -17,21 +17,21 @@ STATUS_CONFIG = {
         "emoji": "🟢",
         "title": "ว่าง — รับงานได้",
         "desc": "ขณะนี้ admin ว่างและพร้อม setup ให้ลูกค้าได้ทันที\nติดต่อผ่าน Ticket ได้เลยครับ",
-        "footer": "INSIDEX • STATUS",
+        "footer": "INSIDEX • Premium Hands-on Setup Service",
     },
     "ยุ่ง": {
         "color": 0xEF9F27,
         "emoji": "🟡",
         "title": "ยุ่ง — กำลัง setup ให้ลูกค้าอยู่",
         "desc": "ขณะนี้ admin กำลัง setup ให้ลูกค้าอยู่\nอาจตอบช้าหน่อย แต่รับคิวได้ครับ",
-        "footer": "INSIDEX • STATUS",
+        "footer": "INSIDEX • Premium Hands-on Setup Service",
     },
     "เต็ม": {
         "color": 0xE24B4A,
         "emoji": "🔴",
-        "title": "เต็ม — คิวล้น !",
+        "title": "เต็ม — ไม่รับงานชั่วคราว",
         "desc": "ขณะนี้คิวเต็มแล้ว ยังไม่รับงานเพิ่ม\nกรุณารอและติดตามสถานะอีกครั้งในภายหลังครับ",
-        "footer": "INSIDEX • STATUS",
+        "footer": "INSIDEX • Premium Hands-on Setup Service",
     },
 }
 
@@ -45,9 +45,9 @@ async def on_ready():
 @tree.command(name="setstatus", description="เปลี่ยนสถานะ INSIDEX (ว่าง / ยุ่ง / เต็ม)")
 @app_commands.describe(สถานะ="เลือกสถานะ: ว่าง, ยุ่ง, เต็ม")
 @app_commands.choices(สถานะ=[
-    app_commands.Choice(name="🟢 ว่างมาซื้อที !", value="ว่างมาซื้อที !"),
-    app_commands.Choice(name="🟡 ยุ่งนิดหน่อยจ่ะ", value="ยุ่งนิดหน่อยจ่ะ"),
-    app_commands.Choice(name="🔴 คิวล้น !", value="คิวล้น !"),
+    app_commands.Choice(name="🟢 ว่าง", value="ว่าง"),
+    app_commands.Choice(name="🟡 ยุ่ง", value="ยุ่ง"),
+    app_commands.Choice(name="🔴 เต็ม", value="เต็ม"),
 ])
 async def setstatus(interaction: discord.Interaction, สถานะ: str):
     global STATUS_STORED_MESSAGE_ID
