@@ -6,6 +6,7 @@ TOKEN = os.environ["DISCORD_TOKEN"]
 STATUS_CHANNEL_ID = int(os.environ["STATUS_CHANNEL_ID"])
 
 intents = discord.Intents.default()
+intents.members = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
@@ -35,6 +36,7 @@ STATUS_CONFIG = {
         "footer": "INSIDEX • STATUS",
     },
 }
+
 
 
 @client.event
@@ -79,6 +81,47 @@ async def setstatus(interaction: discord.Interaction, สถานะ: str):
     new_msg = await channel.send(content="@everyone", embed=embed)
     STATUS_STORED_MESSAGE_ID = new_msg.id
     await interaction.response.send_message(f"✅ โพสต์สถานะ **{สถานะ}** ในห้องแล้วครับ", ephemeral=True)
+    
+@tree.command(name="rolestats", description="ดูจำนวนสมาชิกที่มีแต่ละยศในเซิร์ฟเวอร์")
+async def rolestats(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+
+    guild = interaction.guild
+    # ต้อง fetch members ให้ครบก่อน (ต้องเปิด Server Members Intent ใน Dev Portal)
+    await guild.chunk()
+
+    # นับจำนวนคนต่อยศ ข้าม @everyone
+    role_counts = []
+    for role in guild.roles:
+        if role.is_default():
+            continue
+        count = len(role.members)
+        if count > 0:
+            role_counts.append((role, count))
+
+    # เรียงจากคนเยอะไปน้อย
+    role_counts.sort(key=lambda x: x[1], reverse=True)
+
+    if not role_counts:
+        await interaction.followup.send("❌ ไม่พบยศที่มีสมาชิกครับ")
+        return
+
+    lines = [f"{role.mention} — **{count}** คน" for role, count in role_counts]
+
+    # แบ่งหน้าถ้ายศเยอะเกิน (embed description limit ~4096 ตัวอักษร)
+    description = "\n".join(lines)
+    if len(description) > 4000:
+        description = description[:4000] + "\n... (ตัดรายการเนื่องจากยาวเกินไป)"
+
+    embed = discord.Embed(
+        title="📊 สรุปจำนวนสมาชิกตามยศ",
+        description=description,
+        color=0x6366F1,
+    )
+    embed.set_footer(text=f"รวมทั้งหมด {len(guild.roles) - 1} ยศ • สมาชิกทั้งหมด {guild.member_count} คน")
+    embed.timestamp = discord.utils.utcnow()
+
+    await interaction.followup.send(embed=embed)
 
 
 client.run(TOKEN)
