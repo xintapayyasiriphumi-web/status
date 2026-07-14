@@ -81,11 +81,105 @@ db_init()
 
 
 # =========================================
+# /form : ฟอร์มแจ้งปัญหาลูกค้า
+# =========================================
+class CustomerFormModal(discord.ui.Modal, title="แจ้งปัญหา / ข้อมูลเครื่อง"):
+    specs = discord.ui.TextInput(
+        label="สเปคคอม",
+        placeholder="เช่น i5-12400F, RTX 3060, RAM 16GB",
+        style=discord.TextStyle.paragraph,
+        required=True,
+        max_length=500,
+    )
+    problem = discord.ui.TextInput(
+        label="ปัญหาที่เจอ",
+        placeholder="อธิบายอาการที่เจอ",
+        style=discord.TextStyle.paragraph,
+        required=True,
+        max_length=1000,
+    )
+    device_type = discord.ui.TextInput(
+        label="ใช้คอมหรือโน็ตบุ๊ค",
+        placeholder="คอม / โน็ตบุ๊ค",
+        style=discord.TextStyle.short,
+        required=True,
+        max_length=50,
+    )
+    network_type = discord.ui.TextInput(
+        label="ใช้ LAN หรือ Wifi",
+        placeholder="LAN / Wifi",
+        style=discord.TextStyle.short,
+        required=True,
+        max_length=50,
+    )
+    gpu_brand = discord.ui.TextInput(
+        label="การ์ดจอ NVIDIA หรือ RADEON",
+        placeholder="NVIDIA / RADEON",
+        style=discord.TextStyle.short,
+        required=True,
+        max_length=50,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        embed = discord.Embed(
+            title="📝 ข้อมูลลูกค้า",
+            color=0x5865F2,
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.set_author(
+            name=str(interaction.user),
+            icon_url=interaction.user.display_avatar.url,
+        )
+        embed.add_field(name="🖥️ สเปคคอม", value=str(self.specs), inline=False)
+        embed.add_field(name="⚠️ ปัญหาที่เจอ", value=str(self.problem), inline=False)
+        embed.add_field(name="💻 ประเภทเครื่อง", value=str(self.device_type), inline=True)
+        embed.add_field(name="🌐 การเชื่อมต่อ", value=str(self.network_type), inline=True)
+        embed.add_field(name="🎮 การ์ดจอ", value=str(self.gpu_brand), inline=True)
+        embed.set_footer(text="INSIDEX • FORM")
+
+        await interaction.response.send_message(embed=embed)
+
+
+class CustomerFormView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="กรอกฟอร์ม",
+        emoji="📝",
+        style=discord.ButtonStyle.primary,
+        custom_id="customer_form_button",
+    )
+    async def open_form(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(CustomerFormModal())
+
+
+@tree.command(name="form", description="สร้างฟอร์มให้ลูกค้ากรอกข้อมูลเครื่อง/ปัญหา")
+async def form(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="📝 แจ้งปัญหา / ข้อมูลเครื่อง",
+        description=(
+            "กดปุ่มด้านล่างเพื่อกรอกข้อมูล\n\n"
+            "• สเปคคอม\n"
+            "• ปัญหาที่เจอ\n"
+            "• ใช้คอมหรือโน็ตบุ๊ค\n"
+            "• ใช้ LAN หรือ Wifi\n"
+            "• การ์ดจอ NVIDIA หรือ RADEON\n\n"
+            "กรอกครบแล้วกดยืนยัน ระบบจะแสดงข้อมูลออกมาเป็น embed ให้ครับ"
+        ),
+        color=0x5865F2,
+    )
+    embed.set_footer(text="INSIDEX • FORM")
+    await interaction.response.send_message(embed=embed, view=CustomerFormView())
+
+
+# =========================================
 # on_ready
 # =========================================
 @client.event
 async def on_ready():
     await tree.sync()
+    client.add_view(CustomerFormView())
     await client.change_presence(activity=discord.CustomActivity(name="🟢 X STATUS"))
     if not status_auto_reset_check.is_running():
         status_auto_reset_check.start()
