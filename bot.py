@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import tasks
 import os
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from zoneinfo import ZoneInfo
 
 TOKEN = os.environ["DISCORD_TOKEN"]
@@ -25,7 +25,7 @@ STATUS_CONFIG = {
         "color": 0x39FF14,
         "emoji": "🟢",
         "title": "ว่าง — รับงานได้",
-        "desc": "ขณะนี้ admin ว่างและพร้อม setup ให้ลูกค้าได้ทันที\nติดต่อผ่าน Ticket ได้เลยครับ\n**ซื้อ Setting** https://discord.com/channels/1400021255528382526/1432715699138072699\n**ลง Windows** https://discord.com/channels/1400021255528382526/1485640881653420062",
+        "desc": "ขณะนี้ admin ว่างและพร้อม setup ให้ลูกค้าได้ทันที\nติดต่อผ่าน Ticket ได้เลยครับ\n**ซื้อสินค้าและบริการ** https://discord.com/channels/1400021255528382526/1432715699138072699",
         "footer": "INSIDEX • STATUS",
     },
     "ยุ่ง": {
@@ -183,6 +183,8 @@ async def on_ready():
     await client.change_presence(activity=discord.CustomActivity(name="🟢 X STATUS"))
     if not status_auto_reset_check.is_running():
         status_auto_reset_check.start()
+    if not daily_open_status.is_running():
+        daily_open_status.start()
     print(f"Bot ready : {client.user}")
 
 
@@ -262,6 +264,46 @@ async def status_auto_reset_check():
     STATUS_LAST_CHANGED = datetime.now(BANGKOK_TZ)
     db_log_status_change("ว่าง (auto-reset)", "system")
     print(f"[auto-reset] สถานะถูกรีเซ็ตเป็นว่าง หลังไม่มีการเปลี่ยนแปลง {STATUS_AUTO_RESET_HOURS} ชม.")
+
+
+# =========================================
+# เปิดคิวอัตโนมัติทุก 8 โมงเช้า (เวลาไทย) — ตั้งสถานะเป็น "ว่าง — รับงานได้"
+# =========================================
+@tasks.loop(time=time(hour=8, minute=0, tzinfo=BANGKOK_TZ))
+async def daily_open_status():
+    global STATUS_STORED_MESSAGE_ID, STATUS_LAST_CHANGED
+
+    channel = client.get_channel(STATUS_CHANNEL_ID)
+    if not channel:
+        return
+
+    cfg = STATUS_CONFIG["ว่าง"]
+    guild = client.guilds[0] if client.guilds else None
+    embed = discord.Embed(title=f"{cfg['emoji']}  {cfg['title']}", description=cfg["desc"], color=cfg["color"])
+    embed.set_author(name="INSIDEX STATUS", icon_url=guild.icon.url if guild and guild.icon else None)
+    embed.set_image(url=THUMBNAIL_URL)
+    embed.set_footer(text=cfg["footer"] + " • เปิดคิวเช้า 08:00")
+    embed.timestamp = discord.utils.utcnow()
+
+    if STATUS_STORED_MESSAGE_ID:
+        try:
+            msg = await channel.fetch_message(STATUS_STORED_MESSAGE_ID)
+            await msg.edit(content="@everyone", embed=embed)
+        except discord.NotFound:
+            STATUS_STORED_MESSAGE_ID = None
+
+    if STATUS_STORED_MESSAGE_ID is None:
+        new_msg = await channel.send(content="@everyone", embed=embed)
+        STATUS_STORED_MESSAGE_ID = new_msg.id
+
+    STATUS_LAST_CHANGED = datetime.now(BANGKOK_TZ)
+    db_log_status_change("ว่าง (เปิดคิว 08:00)", "system")
+    print("[daily] เปิดคิวเช้า 08:00 — ตั้งสถานะเป็นว่าง รับงานได้")
+
+
+@daily_open_status.before_loop
+async def before_daily_open_status():
+    await client.wait_until_ready()
 
 
 client.run(TOKEN)
