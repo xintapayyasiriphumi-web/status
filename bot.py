@@ -8,6 +8,11 @@ from zoneinfo import ZoneInfo
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 STATUS_CHANNEL_ID = int(os.environ["STATUS_CHANNEL_ID"])
+# ห้องที่จะส่งข้อความต้อนรับเมื่อลูกค้าเข้า server (ไม่ตั้งก็ได้ — /welcome ยังใช้ได้)
+WELCOME_CHANNEL_ID = int(os.environ.get("WELCOME_CHANNEL_ID", "0") or 0)
+
+# สี/ธีมหลักของ INSIDEX
+BRAND_COLOR = 0x8B5CF6  # ม่วง
 
 intents = discord.Intents.default()
 intents.members = True
@@ -174,12 +179,198 @@ async def form(interaction: discord.Interaction):
 
 
 # =========================================
+#  WELCOME PANEL
+# =========================================
+
+def build_welcome_embed() -> discord.Embed:
+    """สร้าง embed ต้อนรับหน้าตาเหมือนในภาพ"""
+    embed = discord.Embed(
+        title="✨  WELCOME TO INSIDEX STORE",
+        description=(
+            "ยินดีต้อนรับสู่ **INSIDEX** แหล่งรวมบริการ "
+            "FiveM Optimization และ Windows Performance\n\n"
+            "**คุณกำลังมองหาบริการแบบไหน?**\n"
+            "กดปุ่มด้านล่างเพื่อดูรายละเอียดแต่ละบริการได้เลยครับ 👇"
+        ),
+        color=BRAND_COLOR,
+    )
+    embed.add_field(
+        name="🎮  FiveM Settings",
+        value="ปรับแต่ง Setting สำหรับ FiveM",
+        inline=False,
+    )
+    embed.add_field(
+        name="⚡  Boost FPS",
+        value="บริการปรับแต่งและตรวจสอบประสิทธิภาพ",
+        inline=False,
+    )
+    embed.add_field(
+        name="🖥️  Windows Optimization",
+        value="บริการ Windows และ OS Optimization",
+        inline=False,
+    )
+    embed.add_field(
+        name="💬  ปรึกษาทีมงาน",
+        value="ไม่รู้จะเลือกอะไรดี? กดปุ่มเพื่อแจ้งสเปกและปัญหาที่พบ",
+        inline=False,
+    )
+    embed.set_footer(text="INSIDEX • FiveM Optimization & Windows Performance")
+    return embed
+
+
+# ---- ข้อความรายละเอียดของแต่ละปุ่ม (เด้งแบบ ephemeral เห็นคนเดียว) ----
+
+def fivem_embed() -> discord.Embed:
+    e = discord.Embed(
+        title="🎮  FiveM Settings",
+        description=(
+            "ปรับแต่ง **Setting สำหรับ FiveM** ให้ลื่นและนิ่งที่สุด\n\n"
+            "• ปรับค่า config / graphics ให้เหมาะกับเครื่องคุณ\n"
+            "• ลด stutter และ frame drop ในเมือง\n"
+            "• ตั้งค่าให้เข้ากับ server ที่คุณเล่น\n\n"
+            "สนใจ? กดปุ่ม **ปรึกษาทีมงาน** เพื่อแจ้งสเปกเครื่องได้เลยครับ"
+        ),
+        color=BRAND_COLOR,
+    )
+    e.set_footer(text="INSIDEX • FiveM Settings")
+    return e
+
+
+def boost_embed() -> discord.Embed:
+    e = discord.Embed(
+        title="⚡  Boost FPS",
+        description=(
+            "บริการ **ปรับแต่งและตรวจสอบประสิทธิภาพ** เพิ่ม FPS\n\n"
+            "• ตรวจสอบ bottleneck ของเครื่อง\n"
+            "• Optimize ให้ได้ FPS สูงสุดเท่าที่เครื่องทำได้\n"
+            "• ลด input lag และ latency\n\n"
+            "สนใจ? กดปุ่ม **ปรึกษาทีมงาน** เพื่อแจ้งสเปกเครื่องได้เลยครับ"
+        ),
+        color=BRAND_COLOR,
+    )
+    e.set_footer(text="INSIDEX • Boost FPS")
+    return e
+
+
+def windows_embed() -> discord.Embed:
+    e = discord.Embed(
+        title="🖥️  Windows Optimization",
+        description=(
+            "บริการ **Windows และ OS Optimization**\n\n"
+            "• ตัด bloatware / background ที่ไม่จำเป็น\n"
+            "• ปรับ Windows ให้เบาและเร็วขึ้น\n"
+            "• เหมาะสำหรับสาย gaming โดยเฉพาะ\n\n"
+            "สนใจ? กดปุ่ม **ปรึกษาทีมงาน** เพื่อแจ้งสเปกเครื่องได้เลยครับ"
+        ),
+        color=BRAND_COLOR,
+    )
+    e.set_footer(text="INSIDEX • Windows Optimization")
+    return e
+
+
+def consult_embed() -> discord.Embed:
+    e = discord.Embed(
+        title="💬  ปรึกษาทีมงาน",
+        description=(
+            "ไม่รู้จะเลือกบริการไหนดี? ไม่เป็นไรครับ 🙌\n\n"
+            "พิมพ์บอกข้อมูลพวกนี้ไว้ได้เลย เดี๋ยวทีมงานมาช่วยดูให้:\n"
+            "• **สเปกเครื่อง** (CPU / GPU / RAM)\n"
+            "• **ปัญหาที่เจอ** (เช่น FPS ตก, กระตุก, lag)\n"
+            "• **เกม/server** ที่เล่นเป็นหลัก\n\n"
+            "ทีมงานจะติดต่อกลับโดยเร็วที่สุดครับ"
+        ),
+        color=BRAND_COLOR,
+    )
+    e.set_footer(text="INSIDEX • Support")
+    return e
+
+
+class WelcomeView(discord.ui.View):
+    """ปุ่ม 4 อันใต้ panel — persistent (กดได้แม้บอท restart)"""
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="FiveM Settings",
+        emoji="🎮",
+        style=discord.ButtonStyle.secondary,
+        custom_id="insidex_welcome_fivem",
+        row=0,
+    )
+    async def fivem(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(embed=fivem_embed(), ephemeral=True)
+
+    @discord.ui.button(
+        label="Boost FPS",
+        emoji="⚡",
+        style=discord.ButtonStyle.secondary,
+        custom_id="insidex_welcome_boost",
+        row=0,
+    )
+    async def boost(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(embed=boost_embed(), ephemeral=True)
+
+    @discord.ui.button(
+        label="Windows Optimization",
+        emoji="🖥️",
+        style=discord.ButtonStyle.secondary,
+        custom_id="insidex_welcome_windows",
+        row=1,
+    )
+    async def windows(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(embed=windows_embed(), ephemeral=True)
+
+    @discord.ui.button(
+        label="ปรึกษาทีมงาน",
+        emoji="💬",
+        style=discord.ButtonStyle.primary,
+        custom_id="insidex_welcome_consult",
+        row=1,
+    )
+    async def consult(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(embed=consult_embed(), ephemeral=True)
+
+
+
+@client.event
+async def on_member_join(member: discord.Member):
+    """ส่ง panel ต้อนรับเมื่อมีคนเข้า server"""
+    if not WELCOME_CHANNEL_ID:
+        return
+    channel = client.get_channel(WELCOME_CHANNEL_ID)
+    if channel is None:
+        print(f"[welcome] หาห้อง WELCOME_CHANNEL_ID={WELCOME_CHANNEL_ID} ไม่เจอ")
+        return
+    try:
+        await channel.send(
+            content=f"👋 ยินดีต้อนรับ {member.mention} เข้าสู่ **INSIDEX**!",
+            embed=build_welcome_embed(),
+            view=WelcomeView(),
+        )
+    except discord.HTTPException as e:
+        print(f"[welcome] ส่งข้อความต้อนรับไม่สำเร็จ: {e}")
+
+
+@tree.command(name="welcome", description="โพสต์ panel ต้อนรับ INSIDEX ในห้องนี้")
+async def welcome(interaction: discord.Interaction):
+    # ตอบ interaction ก่อน กัน "The application did not respond"
+    await interaction.response.send_message("⏳ กำลังโพสต์ panel ต้อนรับ...", ephemeral=True)
+    try:
+        await interaction.channel.send(embed=build_welcome_embed(), view=WelcomeView())
+        await interaction.edit_original_response(content="✅ โพสต์ panel ต้อนรับแล้วครับ")
+    except discord.HTTPException as e:
+        await interaction.edit_original_response(content=f"❌ โพสต์ไม่สำเร็จ: {e}")
+
+
+# =========================================
 # on_ready
 # =========================================
 @client.event
 async def on_ready():
     await tree.sync()
     client.add_view(CustomerFormView())
+    client.add_view(WelcomeView())
     await client.change_presence(activity=discord.CustomActivity(name="🟢 X STATUS"))
     if not status_auto_reset_check.is_running():
         status_auto_reset_check.start()
